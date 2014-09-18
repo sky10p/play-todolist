@@ -23,7 +23,8 @@ object Application extends Controller {
   }
 
   def tasks = Action {
-    Ok(views.html.index(Task.all(), taskForm))
+    val json = Json.toJson(Task.all())
+    Ok(json)
   }
 
   def tasksView(id: Long) = Action {
@@ -35,15 +36,20 @@ object Application extends Controller {
     taskForm.bindFromRequest.fold(
       errors => BadRequest("No has dado los parametros correctos"),
       label => {
-        val id=Task.create(label)
-        val json=Json.toJson(Task.read(id.get))
+        val id = Task.create(label)
+        val json = Json.toJson(Task.read(id.get))
         Created(json)
       })
   }
 
   def deleteTask(id: Long) = Action {
-    Task.delete(id)
-    Redirect(routes.Application.tasks)
+    val rowsDeleted=Task.delete(id)
+    if(rowsDeleted>=1){
+      Ok("Borrado correctamente")
+    }else{
+      NotFound("La tarea no existe")
+    }
+   
   }
 
 }
