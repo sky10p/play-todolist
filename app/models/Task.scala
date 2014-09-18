@@ -20,13 +20,15 @@ object Task{
 	SQL("select * from task").as(task *)
 	}
 
-	def create(label: String) {
-		DB.withConnection { implicit c =>
+	def create(label: String) :Option[Long]={
+    val id:Option[Long] =	DB.withConnection { implicit c =>
 		SQL("insert into task (label) values ({label})").on(
 				'label -> label
-				).executeUpdate()
+				).executeInsert()
 		}
-	}
+    id
+  }
+	
 
 	def delete(id: Long) {
 		DB.withConnection { implicit c =>
