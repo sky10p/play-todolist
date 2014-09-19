@@ -19,11 +19,13 @@ object Application extends Controller {
     (JsPath \ "label").write[String])(unlift(Task.unapply))
 
   def index = Action {
-    Redirect(routes.Application.tasks)
+    Redirect(routes.Application.tasks("anonimo"))
   }
 
-  def tasks = Action {
-    val json = Json.toJson(Task.all())
+
+  
+  def tasks(login:String)= Action{
+    val json = Json.toJson(Task.find(login))
     Ok(json)
   }
 
@@ -32,11 +34,11 @@ object Application extends Controller {
     Ok(json)
   }
 
-  def newTask = Action { implicit request =>
+  def newTask(login: String) = Action { implicit request =>
     taskForm.bindFromRequest.fold(
       errors => BadRequest("No has dado los parametros correctos"),
       label => {
-        val id = Task.create(label)
+        val id = Task.create(label, login)
         val json = Json.toJson(Task.read(id.get))
         Created(json)
       })

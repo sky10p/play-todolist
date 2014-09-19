@@ -6,9 +6,11 @@
 GET     /                           controllers.Application.index
 
 # Tasks
-GET     /tasks                  controllers.Application.tasks
+GET     /tasks                  controllers.Application.tasks(login: String="anonimo")
 GET		/tasks/:id				controllers.Application.tasksView(id:Long)
-POST    /tasks                  controllers.Application.newTask
+GET		/:login/tasks			controllers.Application.tasks(login:String)
+POST    /tasks                  controllers.Application.newTask(login:String="anonimo")
+POST	/:login/tasks			controllers.Application.newTask(login:String)
 DELETE    /tasks/:id   controllers.Application.deleteTask(id:Long)
 
 # Map static resources from the /public folder to the /assets URL path

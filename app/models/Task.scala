@@ -16,14 +16,16 @@ object Task{
 			}
 	}
 
-	def all(): List[Task] = DB.withConnection { implicit c =>
-	SQL("select * from task").as(task *)
+	def find(login:String): List[Task] = DB.withConnection { implicit c =>
+	SQL("select * from task where login={login}").on(
+      'login->login).as(task *)
 	}
 
-	def create(label: String) :Option[Long]={
+	def create(label: String, login: String) :Option[Long]={
     val id:Option[Long] =	DB.withConnection { implicit c =>
-		SQL("insert into task (label) values ({label})").on(
-				'label -> label
+		SQL("insert into task (label, login) values ({label},{login})").on(
+				'label -> label,
+        'login -> login
 				).executeInsert()
 		}
     id
