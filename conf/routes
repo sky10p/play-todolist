@@ -11,6 +11,7 @@ GET		/tasks/:id				controllers.Application.tasksView(id:Long)
 GET		/:login/tasks			controllers.Application.tasks(login:String)
 POST    /tasks                  controllers.Application.newTask(login:String="anonimo")
 POST	/:login/tasks			controllers.Application.newTask(login:String)
+PUT		/tasks/:id				controllers.Application.modifyDate(id:Long)
 DELETE    /tasks/:id   controllers.Application.deleteTask(id:Long)
 
 # Map static resources from the /public folder to the /assets URL path

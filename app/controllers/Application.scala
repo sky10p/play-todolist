@@ -1,6 +1,7 @@
 package controllers
 
 import play.api._
+import java.util.Date
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
@@ -12,11 +13,20 @@ import play.api.libs.functional.syntax._
 object Application extends Controller {
 
   val taskForm = Form(
-    "label" -> nonEmptyText)
+      mapping(
+          "id"->ignored(None:Option[Long]),
+    "label" -> nonEmptyText,
+    "fecha" -> optional(date("dd/MM/yyyy"))
+    )(Task.apply)(Task.unapply)
+    )
+    
+    val fechaForm=Form(
+        "fecha"->optional(date("dd/MM/yyyy")))
 
   implicit val taskWrites: Writes[Task] = (
-    (JsPath \ "id").write[Long] and
-    (JsPath \ "label").write[String])(unlift(Task.unapply))
+    (JsPath \ "id").write[Option[Long]] and
+    (JsPath \ "label").write[String] and
+    (JsPath \ "fecha").write[Option[Date]])(unlift(Task.unapply))
 
   def index = Action {
     Redirect(routes.Application.tasks("anonimo"))
@@ -37,10 +47,20 @@ object Application extends Controller {
   def newTask(login: String) = Action { implicit request =>
     taskForm.bindFromRequest.fold(
       errors => BadRequest("No has dado los parametros correctos"),
-      label => {
-        val id = Task.create(label, login)
+      task => {
+        val id = Task.create(login,task)
         val json = Json.toJson(Task.read(id.get))
         Created(json)
+      })
+  }
+  
+  def modifyDate(id: Long)=Action{ implicit request=>
+    fechaForm.bindFromRequest.fold(
+      errors => BadRequest("No has dado los parametros correctos"),
+      fecha => {
+        val json = Json.toJson(Task.modifyDate(id,fecha))
+        Ok(json)
+        
       })
   }
 
