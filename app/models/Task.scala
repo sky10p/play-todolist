@@ -1,18 +1,20 @@
 package models
 
 import anorm._
+import java.util.Date
 import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
 
-case class Task(id: Long, label: String)
+case class Task(id: Option[Long], label: String, fecha: Option[Date])
 
 object Task{
 
 	val task = {
-			get[Long]("id") ~ 
-			get[String]("label") map {
-			case id~label => Task(id, label)
+			get[Option[Long]]("id") ~ 
+			get[String]("label") ~
+      get[Option[Date]]("fecha") map {
+			case id~label~fecha => Task(id, label,fecha)
 			}
 	}
 
@@ -21,11 +23,12 @@ object Task{
       'login->login).as(task *)
 	}
 
-	def create(label: String, login: String) :Option[Long]={
+	def create(login:String,task:Task) :Option[Long]={
     val id:Option[Long] =	DB.withConnection { implicit c =>
-		SQL("insert into task (label, login) values ({label},{login})").on(
-				'label -> label,
-        'login -> login
+		SQL("insert into task (label, login, fecha) values ({label},{login},{fecha})").on(
+				'label -> task.label,
+        'login -> login,
+        'fecha -> task.fecha
 				).executeInsert()
 		}
     id
@@ -46,5 +49,15 @@ object Task{
         'id -> id
         ).as(task *)
       
+  }
+  
+  def modifyDate(id:Long, fecha: Option[Date]):Int={
+    DB.withConnection { implicit c =>
+      val rowsUpdated=SQL("update task set fecha={fecha} where id = {id}").on(
+        'id -> id,
+        'fecha-> fecha
+        ).executeUpdate()
+        rowsUpdated
+    }
   }
 }
