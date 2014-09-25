@@ -66,6 +66,32 @@ POST	/:login/tasks			controllers.Application.newTask(login:String)
 ```
 Las rutas sin login le ponemos *anonimo* de login.
 
+Para controlar que el usuario es valido usamos este codigo: 
+```
+ val firstRow = SQL("select count(*) as c from task_user where nombre={nombre}").on('nombre -> login).apply().head
+    val users_count = firstRow[Long]("c")
+    if (users_count != 0) {
+      Some(SQL("select * from task where login={login}").on(
+        'login -> login).as(task *))
+    } else {
+      return None
+    }
+```
+es decir se comprueba que hay usuarios en la base task_user y si hay hace el select correspondiente si no devuelve un Option vacio, luego se manda la respuesta usando esto de la siguiente manera:
+
+```
+val tasks = Task.create(login, task)
+        if (tasks == None) {
+          NotFound("No se ha encontrado el usuario")
+        } else {
+          val id = tasks
+          val json = Json.toJson(Task.read(id.get))
+          Created(json)
+        }
+```
+
+si devuelve un option vacio devuelve un status de Not Found y si no lee los valores de ese id y lo crea.
+
 ##Feature 3
 
 Para la implementación de las fechas he añadido dos funciones:

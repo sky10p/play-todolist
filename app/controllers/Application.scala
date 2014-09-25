@@ -13,15 +13,13 @@ import play.api.libs.functional.syntax._
 object Application extends Controller {
 
   val taskForm = Form(
-      mapping(
-          "id"->ignored(None:Option[Long]),
-    "label" -> nonEmptyText,
-    "fecha" -> optional(date("dd/MM/yyyy"))
-    )(Task.apply)(Task.unapply)
-    )
-    
-    val fechaForm=Form(
-        "fecha"->optional(date("dd/MM/yyyy")))
+    mapping(
+      "id" -> ignored(None: Option[Long]),
+      "label" -> nonEmptyText,
+      "fecha" -> optional(date("dd/MM/yyyy")))(Task.apply)(Task.unapply))
+
+  val fechaForm = Form(
+    "fecha" -> optional(date("dd/MM/yyyy")))
 
   implicit val taskWrites: Writes[Task] = (
     (JsPath \ "id").write[Option[Long]] and
@@ -32,11 +30,15 @@ object Application extends Controller {
     Redirect(routes.Application.tasks("anonimo"))
   }
 
+  def tasks(login: String) = Action {
+    val tasks = Task.find(login)
+    if (tasks == None) {
+      NotFound("No se ha encontrado el usuario")
+    } else {
+      val json = Json.toJson(tasks.get)
+      Ok(json)
+    }
 
-  
-  def tasks(login:String)= Action{
-    val json = Json.toJson(Task.find(login))
-    Ok(json)
   }
 
   def tasksView(id: Long) = Action {
@@ -48,30 +50,36 @@ object Application extends Controller {
     taskForm.bindFromRequest.fold(
       errors => BadRequest("No has dado los parametros correctos"),
       task => {
-        val id = Task.create(login,task)
-        val json = Json.toJson(Task.read(id.get))
-        Created(json)
+        val tasks = Task.create(login, task)
+        if (tasks == None) {
+          NotFound("No se ha encontrado el usuario")
+        } else {
+          val id = tasks
+          val json = Json.toJson(Task.read(id.get))
+          Created(json)
+        }
+
       })
   }
-  
-  def modifyDate(id: Long)=Action{ implicit request=>
+
+  def modifyDate(id: Long) = Action { implicit request =>
     fechaForm.bindFromRequest.fold(
       errors => BadRequest("No has dado los parametros correctos"),
       fecha => {
-        val json = Json.toJson(Task.modifyDate(id,fecha))
+        val json = Json.toJson(Task.modifyDate(id, fecha))
         Ok(json)
-        
+
       })
   }
 
   def deleteTask(id: Long) = Action {
-    val rowsDeleted=Task.delete(id)
-    if(rowsDeleted>=1){
+    val rowsDeleted = Task.delete(id)
+    if (rowsDeleted >= 1) {
       Ok("Borrado correctamente")
-    }else{
+    } else {
       NotFound("La tarea no existe")
     }
-   
+
   }
 
 }
