@@ -31,6 +31,17 @@ class ControllersTests extends Specification with JsonMatchers {
          }
       }
     
-    
+    "devolver NotFound si el id de la tarea no existe o ha sido borrada" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            val taskId = Task.create("prueba","anonymous")
+           
+            Task.delete(taskId)
+             val Some(resultTask) = route(FakeRequest(GET, "/tasks/"+taskId))
+             
+            status(resultTask) must equalTo(NOT_FOUND)
+            
+         }
+    }
   }
 }
