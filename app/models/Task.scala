@@ -1,74 +1,68 @@
 package models
-
-import anorm._
-import java.util.Date
-import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
+import anorm._
+import anorm.SqlParser._
+import java.util.Date
 
-case class Task(id: Option[Long], label: String, fecha: Option[Date])
+case class Task(id: Long, label: String, taskOwner: String, deadline: Option[Date] = None)
 
 object Task {
 
-  val task = {
-    get[Option[Long]]("id") ~
-      get[String]("label") ~
-      get[Option[Date]]("fecha") map {
-        case id ~ label ~ fecha => Task(id, label, fecha)
+   val task = {
+      get[Long]("id") ~ 
+      get[String]("label") ~ 
+      get[String]("task_owner") ~ 
+      get[Option[Date]]("deadline") map {
+         case id~label~user~deadline => Task(id, label, user, deadline)
       }
-  }
+   }
+ 
+   def all(): List[Task] = DB.withConnection { implicit c =>
+     SQL("select * from task").as(task *)
+   }
 
-  def find(login: String): Option[List[Task]] = DB.withConnection { implicit c =>
-    val firstRow = SQL("select count(*) as c from task_user where nombre={nombre}").on('nombre -> login).apply().head
-    val users_count = firstRow[Long]("c")
-    if (users_count != 0) {
-      Some(SQL("select * from task where login={login}").on(
-        'login -> login).as(task *))
-    } else {
-      return None
-    }
-  }
-
-  def create(login: String, task: Task): Option[Long] = {
-
-    val id: Option[Long] = DB.withConnection { implicit c =>
-      val firstRow = SQL("select count(*) as c from task_user where nombre={nombre}").on('nombre -> login).apply().head
-      val users_count = firstRow[Long]("c")
-
-      if (users_count == 0) {
-        None
-      } else {
-        SQL("insert into task (label, login, fecha) values ({label},{login},{fecha})").on(
-          'label -> task.label,
-          'login -> login,
-          'fecha -> task.fecha).executeInsert()
+   def all(user: String, dateStr: Option[Date] = None): List[Task] = DB.withConnection { implicit c =>
+      dateStr match {
+          case Some(date) => SQL("select * from task where task_owner = {user} and deadline = {date}").on (
+                                 'user -> user,
+                                 'date -> date
+                              ).as(task *)
+          case None => SQL("select * from task where task_owner = {user}").on (
+                                 'user -> user
+                              ).as(task *)
       }
-    }
+   }
 
-    id
+   def create(label: String, taskOwner: String, deadline: Option[Date] = None): Long = {
+      DB.withConnection { implicit c =>
+         val id: Option[Long]  = 
+            SQL("insert into task (label, task_owner, deadline) values ({label}, {taskOwner},{deadline})").on(
+               'label -> label,
+               'taskOwner -> taskOwner,
+               'deadline -> deadline
+            ).executeInsert()
 
-  }
+         //Devolvemos -1 si el insert devuelve None
+         id.getOrElse(-1)
+     }
+   }
 
-  def delete(id: Long): Int = {
-    DB.withConnection { implicit c =>
-      val rowsDeleted = SQL("delete from task where id = {id}").on(
-        'id -> id).executeUpdate()
-      rowsDeleted
-    }
-  }
-
-  def read(id: Long): List[Task] = DB.withConnection { implicit c =>
-    SQL("select * from task where id={id}").on(
-      'id -> id).as(task *)
-
-  }
-
-  def modifyDate(id: Long, fecha: Option[Date]): Int = {
-    DB.withConnection { implicit c =>
-      val rowsUpdated = SQL("update task set fecha={fecha} where id = {id}").on(
-        'id -> id,
-        'fecha -> fecha).executeUpdate()
-      rowsUpdated
-    }
-  }
+   def findById(id: Long): Option[Task] = {
+      DB.withConnection { implicit connection =>
+         SQL("select * from task where id = {id}").on('id -> id).as(Task.task.singleOpt)
+      }
+   }
+   
+   def delete(id: Long): Boolean = {
+     DB.withConnection { implicit c =>
+       val result: Int = SQL("delete from task where id = {id}").on(
+         'id -> id
+       ).executeUpdate()
+       result match {
+         case 1 => true
+         case _ => false
+       }
+     }
+   }
 }
