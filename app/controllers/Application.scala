@@ -71,12 +71,12 @@ object Application extends Controller {
    def newTaskUser(user: String) = Action { implicit request =>
      taskForm.bindFromRequest.fold(
        errors => BadRequest("Error en la peticion"),
-       taskData => if (User.exists(taskData.user)) {
-                   val id: Long = Task.create(taskData.label, taskData.user, taskData.deadline)
+       taskData => if (User.exists(user)) {
+                   val id: Long = Task.create(taskData.label, user, taskData.deadline)
                    val task = Task.findById(id)
                    Created(Json.toJson(Task.findById(id)))
                 }
-                else BadRequest("Error: No existe el propietario de la tarea: " + taskData.user)
+                else BadRequest("Error: No existe el propietario de la tarea: " + user)
      )
    }
 
