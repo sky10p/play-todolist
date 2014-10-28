@@ -43,5 +43,24 @@ class ControllersTests extends Specification with JsonMatchers {
             
          }
     }
+    
+     "devolver el status created y la tarea creada con un POST /tasks" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(POST, "/tasks").withFormUrlEncodedBody(("label", "prueba"),("usuario",""),("deadline","")))
+             
+            status(resultTask) must equalTo(CREATED)
+           
+            contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            val resultString = Json.stringify(resultJson) 
+ 
+            
+            resultString must /("label" -> "prueba")
+            resultString must /("taskOwner" -> "anonymous")
+         }
+    }
   }
 }

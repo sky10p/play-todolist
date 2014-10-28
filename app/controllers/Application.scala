@@ -32,7 +32,7 @@ object Application extends Controller {
    val taskForm = Form(
       mapping( 
          "label" -> nonEmptyText,
-         "usuario" -> nonEmptyText,
+         "usuario" -> text,
          "deadline" -> optional(date("yyyy-MM-dd"))
       )(TaskData.apply)(TaskData.unapply)
    )
