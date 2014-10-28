@@ -6,6 +6,7 @@ import org.specs2.runner._
 import org.specs2.matcher._
 import models.Task
 import org.junit.runner.RunWith
+import java.util.Date
 
 @RunWith(classOf[JUnitRunner])
 class ControllersTests extends Specification with JsonMatchers {
@@ -158,6 +159,31 @@ class ControllersTests extends Specification with JsonMatchers {
            
           
          }
+    }
+    
+    "Devolver las tareas de un usuario que terminan hoy" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        val fechaGuar=new Date
+      val taskId = Task.create("fecha actual","anonymous", Some(fechaGuar))
+            val Some(resultTask) = route(FakeRequest(GET, "/anonymous/tasks/today"))
+            Task.delete(taskId)
+             status(resultTask) must equalTo(OK)
+           
+            contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            val resultString = Json.stringify(resultJson(0)) 
+ 
+            val format = new java.text.SimpleDateFormat("yyyy-MM-dd")
+            val fecha=format.format(fechaGuar)
+            
+            resultString must /("label" -> "fecha actual")
+            resultString must /("taskOwner" -> "anonymous")
+            resultString must /("deadline"->fecha)
+            
+            
+      }
+         
     }
     
   }
