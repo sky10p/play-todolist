@@ -62,5 +62,14 @@ class ControllersTests extends Specification with JsonMatchers {
             resultString must /("taskOwner" -> "anonymous")
          }
     }
+     
+     "devolver NOT FOUND si se intenta borrar una tarea que no exista" in{
+       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(DELETE, "/tasks/2584"))
+            status(resultTask) must equalTo(NOT_FOUND)
+       }
+     }
   }
 }
