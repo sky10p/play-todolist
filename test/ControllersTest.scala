@@ -72,4 +72,28 @@ class ControllersTests extends Specification with JsonMatchers {
        }
      }
   }
+  
+  "Feature 2(Usuario Creador de la tarea" should {
+    "devolver las tareas creadas de un usuario" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(GET, "/juan.perez/tasks"))
+            status(resultTask) must equalTo(OK)
+             
+             contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            
+            val resultString = Json.stringify(resultJson(0)) 
+            
+         
+              
+            resultString must /("taskOwner" -> "juan.perez")
+            
+       }
+    }
+    
+    
+  }
 }
