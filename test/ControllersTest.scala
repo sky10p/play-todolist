@@ -126,4 +126,39 @@ class ControllersTests extends Specification with JsonMatchers {
     
     
   }
+  
+  "Feature 3(Fecha en la tarea)" should{
+    "poder crear tareas con una fecha en la que se termina la tarea" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(POST, "/tasks").withFormUrlEncodedBody(("label", "prueba"),("usuario",""),("deadline","2014-08-12")))
+             
+            status(resultTask) must equalTo(CREATED)
+           
+            contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            val resultString = Json.stringify(resultJson) 
+ 
+            
+            resultString must /("label" -> "prueba")
+            resultString must /("taskOwner" -> "anonymous")
+            resultString must /("deadline"->"2014-08-12")
+         }
+    }
+    
+    "devolver error en caso de que la fecha sea incorrecta" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(POST, "/tasks").withFormUrlEncodedBody(("label", "prueba"),("usuario",""),("deadline","2 DE MAYO")))
+             
+            status(resultTask) must equalTo(BAD_REQUEST)
+           
+          
+         }
+    }
+    
+  }
 }
