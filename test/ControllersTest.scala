@@ -94,6 +94,36 @@ class ControllersTests extends Specification with JsonMatchers {
        }
     }
     
+    "crear una nueva tarea usando POST <login>/tasks" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(POST, "/juan.perez/tasks").withFormUrlEncodedBody(("label", "soy un usuario no anonimo"),("usuario",""),("deadline","")))
+             
+            status(resultTask) must equalTo(CREATED)
+           
+            contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            val resultString = Json.stringify(resultJson) 
+ 
+            
+            resultString must /("label" -> "soy un usuario no anonimo")
+            resultString must /("taskOwner" -> "juan.perez")
+         }
+    }
+    
+    "crear una tarea con un usuario que no existe" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(POST, "/usuarioNoExiste/tasks").withFormUrlEncodedBody(("label", "soy un usuario no anonimo"),("usuario",""),("deadline","")))
+             
+            status(resultTask) must equalTo(BAD_REQUEST)
+           
+         }
+    }
+    
     
   }
 }
