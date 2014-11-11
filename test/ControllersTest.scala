@@ -5,6 +5,7 @@ import org.specs2.mutable._
 import org.specs2.runner._
 import org.specs2.matcher._
 import models.Task
+import models.Category
 import org.junit.runner.RunWith
 import java.util.Date
 
@@ -186,5 +187,81 @@ class ControllersTests extends Specification with JsonMatchers {
          
     }
     
+  }
+  
+  "Nueva feature(Creacion de categorias)" should{
+    
+    "poder crear categorias para un usuario determinado" in{
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(POST, "/juan.perez/categorias").withFormUrlEncodedBody(("usuario",""),("nombre", "fiesta")))
+             
+            status(resultTask) must equalTo(CREATED)
+           
+            contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            val resultString = Json.stringify(resultJson) 
+ 
+            
+            resultString must /("nombre" -> "fiesta")
+            resultString must /("usuario" -> "juan.perez")
+         }
+    }
+    /*
+    "devolver error si el usuario no existe" in {
+       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            
+             val Some(resultTask) = route(FakeRequest(POST, "/juan.perez/categorias").withFormUrlEncodedBody(("nombre", "cumpleaños")))
+             
+            status(resultTask) must equalTo(BAD_REQUEST)
+       }
+    }
+    
+    "Añadir o modificar una tarea de un usuario a una categoria" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            val taskId = Task.create("prueba","anonymous")
+            val categoriaId= Category.create("user","cumpleaños")
+             val Some(resultTask) = route(FakeRequest(POST, "/juan.perez/"+taskId+"/categoria/"+categoriaId))
+             Task.delete(taskId)
+             Category.delete(categoriaId)
+            status(resultTask) must equalTo(CREATED)
+           
+            contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            val resultString = Json.stringify(resultJson) 
+ 
+            
+            resultString must /("categoria" -> "cumpleaños")
+            resultString must /("taskOwner" -> "juan.perez")
+         }
+    }
+    
+    "listar las tareas de una determinada categoria" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+ 
+            val taskId = Task.create("prueba","anonymous")
+            val categoriaId= Category.create("user","cumpleaños")
+             val Some(resultTask) = route(FakeRequest(POST, "/juan.perez/"+categoriaId+"/tasks"))
+             Task.delete(taskId)
+             Category.delete(categoriaId)
+            status(resultTask) must equalTo(CREATED)
+           
+            contentType(resultTask) must beSome.which(_ == "application/json")
+ 
+            val resultJson: JsValue = contentAsJson(resultTask)
+            val resultString = Json.stringify(resultJson) 
+ 
+            
+            resultString must /("categoria" -> "cumpleaños")
+            resultString must /("taskOwner" -> "juan.perez")
+         }
+    }
+    
+    */
   }
 }

@@ -12,6 +12,7 @@ POST    /tasks                      controllers.Application.newTask()
 GET     /:login/tasks               controllers.Application.tasksUser(login: String, date: Option[String])
 GET     /:login/tasks/today         controllers.Application.tasksUserToday(login: String)
 POST    /:login/tasks               controllers.Application.newTaskUser(login: String)
+POST	/:login/categorias			controllers.Application.newCategory(login: String)
 
 DELETE  /tasks/:id                  controllers.Application.deleteTask(id: Long)
 
