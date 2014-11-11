@@ -4,7 +4,7 @@
 -- Nueva tabla con usuarios
 
 ALTER TABLE task ADD categoria varchar(255);
-ALTER TABLE task ADD constraint fk_task_category FOREIGN KEY (categoria) REFERENCES category (nombre);
+ALTER TABLE task ADD constraint fk_task_category FOREIGN KEY (task_owner,categoria) REFERENCES category (usuario,nombre);
 
 
 
