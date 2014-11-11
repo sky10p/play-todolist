@@ -5,7 +5,7 @@ import anorm._
 import anorm.SqlParser._
 import java.util.Date
 
-case class Task(id: Long, label: String, taskOwner: String, deadline: Option[Date] = None)
+case class Task(id: Long, label: String, categoria: Option[String], taskOwner: String, deadline: Option[Date] = None)
 
 object Task {
 
@@ -13,8 +13,9 @@ object Task {
       get[Long]("id") ~ 
       get[String]("label") ~ 
       get[String]("task_owner") ~ 
+      get[Option[String]]("categoria") ~
       get[Option[Date]]("deadline") map {
-         case id~label~user~deadline => Task(id, label, user, deadline)
+         case id~label~user~categoria~deadline => Task(id, label, categoria,user, deadline)
       }
    }
  
@@ -52,6 +53,26 @@ object Task {
       DB.withConnection { implicit connection =>
          SQL("select * from task where id = {id}").on('id -> id).as(Task.task.singleOpt)
       }
+   }
+   
+   def findByCategory(login: String, categoria: String): List[Task]={
+     DB.withConnection { implicit connection =>
+         SQL("select * from task where task_owner = {usuario} and categoria= {categoria}").on(
+             'usuario -> login, 'categoria -> categoria).as(task *)
+      }
+   }
+   
+   def toCategory(id: Long, categoryId: String): Long ={
+     
+    
+     
+     DB.withConnection { implicit connection =>
+       val task_result: Long  = SQL("update task set categoria={category} where id = {id}").on('id -> id, 'category -> categoryId).executeUpdate()
+     task_result match {
+         case 1 => id
+         case _ => -1
+       }
+     }
    }
    
    def delete(id: Long): Boolean = {

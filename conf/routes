@@ -12,7 +12,9 @@ POST    /tasks                      controllers.Application.newTask()
 GET     /:login/tasks               controllers.Application.tasksUser(login: String, date: Option[String])
 GET     /:login/tasks/today         controllers.Application.tasksUserToday(login: String)
 POST    /:login/tasks               controllers.Application.newTaskUser(login: String)
-
+POST	/:login/categorias			controllers.Application.newCategory(login: String)
+PUT	/:login/:task/categoria/:categoriaId	controllers.Application.addTasktoCategory(login: String, task: Long, categoriaId: String)
+GET /:login/:categoria/tasks		controllers.Application.listPerCategory(login: String, categoria: String)
 DELETE  /tasks/:id                  controllers.Application.deleteTask(id: Long)
 
 # Map static resources from the /public folder to the /assets URL path

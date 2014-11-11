@@ -6,16 +6,15 @@ import play.api.data._
 import play.api.data.Forms._
 import models.Task
 import models.User
+import models.Category
 import java.util.Date
 import java.text.SimpleDateFormat
-
-// JSON
-
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 case class TaskData(label: String, user: String, deadline: Option[Date])
+case class CategoryData(usuario: String, nombre: String)
 
 object Application extends Controller {
 
@@ -25,9 +24,16 @@ object Application extends Controller {
    implicit val locationWrites: Writes[Task] = (
       (JsPath \ "id").write[Long] and
       (JsPath \ "label").write[String] and
+      (JsPath \ "categoria").writeNullable[String] and
       (JsPath \ "taskOwner").write[String] and
       (JsPath \ "deadline").writeNullable[Date](dateWrite)
    )(unlift(Task.unapply))
+   
+   implicit val locationCategory: Writes[Category]=(
+       (JsPath \ "id").write[Long] and
+       (JsPath \ "nombre").write[String] and
+       (JsPath \ "usuario").write[String]
+       )(unlift(Category.unapply))
 
    val taskForm = Form(
       mapping( 
@@ -35,6 +41,13 @@ object Application extends Controller {
          "usuario" -> text,
          "deadline" -> optional(date("yyyy-MM-dd"))
       )(TaskData.apply)(TaskData.unapply)
+   )
+   
+   val categoryForm = Form(
+      mapping( 
+         "usuario" -> text,
+         "nombre" -> text
+      )(CategoryData.apply)(CategoryData.unapply)
    )
 
    def index = Action {
@@ -82,5 +95,30 @@ object Application extends Controller {
 
    def deleteTask(id: Long) = Action {
      if (Task.delete(id)) Ok else NotFound
+   }
+   
+   def newCategory(user: String)=Action{
+     implicit request =>
+     categoryForm.bindFromRequest.fold(
+       errors => BadRequest("Error en la peticion"),
+       categoryData => if (User.exists(user)) {
+                   
+                   val id: Long = Category.create(user, categoryData.nombre)
+                   val categoria = Category.findById(id)
+                   Created(Json.toJson(categoria))
+                }
+                else BadRequest("Error: No existe el propietario de la tarea: " + user)
+     )
+   }
+   
+   def addTasktoCategory(login: String, id: Long, categoriaId: String)=Action{
+     
+    val id_task: Long= Task.toCategory(id, categoriaId)
+    val task= Task.findById(id_task)
+     Ok(Json.toJson(task))
+   }
+   
+   def listPerCategory(login: String, categoria: String)=Action{
+     Ok(Json.toJson(Task.findByCategory(login, categoria)))
    }
 }
