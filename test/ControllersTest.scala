@@ -209,7 +209,7 @@ class ControllersTests extends Specification with JsonMatchers {
             resultString must /("usuario" -> "juan.perez")
          }
     }
-    /*
+    
     "devolver error si el usuario no existe" in {
        running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
  
@@ -223,12 +223,12 @@ class ControllersTests extends Specification with JsonMatchers {
     "Añadir o modificar una tarea de un usuario a una categoria" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
  
-            val taskId = Task.create("prueba","anonymous")
-            val categoriaId= Category.create("user","cumpleaños")
-             val Some(resultTask) = route(FakeRequest(POST, "/juan.perez/"+taskId+"/categoria/"+categoriaId))
+            val taskId = Task.create("prueba","juan.perez")
+            val categoriaId= Category.create("juan.perez","regalo")
+             val Some(resultTask) = route(FakeRequest(PUT, "/juan.perez/"+taskId+"/categoria/regalo"))
              Task.delete(taskId)
              Category.delete(categoriaId)
-            status(resultTask) must equalTo(CREATED)
+            status(resultTask) must equalTo(OK)
            
             contentType(resultTask) must beSome.which(_ == "application/json")
  
@@ -236,32 +236,35 @@ class ControllersTests extends Specification with JsonMatchers {
             val resultString = Json.stringify(resultJson) 
  
             
-            resultString must /("categoria" -> "cumpleaños")
+            resultString must /("categoria" -> "regalo")
             resultString must /("taskOwner" -> "juan.perez")
          }
     }
+    
+    
     
     "listar las tareas de una determinada categoria" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
  
-            val taskId = Task.create("prueba","anonymous")
-            val categoriaId= Category.create("user","cumpleaños")
-             val Some(resultTask) = route(FakeRequest(POST, "/juan.perez/"+categoriaId+"/tasks"))
+            val taskId = Task.create("prueba","juan.perez")
+            val categoriaId= Category.create("juan.perez","regalo")
+            Task.toCategory(taskId, "regalo")
+             val Some(resultTask) = route(FakeRequest(GET, "/juan.perez/regalo"+"/tasks"))
              Task.delete(taskId)
              Category.delete(categoriaId)
-            status(resultTask) must equalTo(CREATED)
+            status(resultTask) must equalTo(OK)
            
             contentType(resultTask) must beSome.which(_ == "application/json")
  
             val resultJson: JsValue = contentAsJson(resultTask)
-            val resultString = Json.stringify(resultJson) 
+            val resultString = Json.stringify(resultJson(0)) 
  
-            
-            resultString must /("categoria" -> "cumpleaños")
+            resultString must /("label" -> "prueba")
+            resultString must /("categoria" -> "regalo")
             resultString must /("taskOwner" -> "juan.perez")
          }
     }
     
-    */
+    
   }
 }

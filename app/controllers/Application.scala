@@ -9,9 +9,6 @@ import models.User
 import models.Category
 import java.util.Date
 import java.text.SimpleDateFormat
-
-// JSON
-
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
@@ -27,6 +24,7 @@ object Application extends Controller {
    implicit val locationWrites: Writes[Task] = (
       (JsPath \ "id").write[Long] and
       (JsPath \ "label").write[String] and
+      (JsPath \ "categoria").writeNullable[String] and
       (JsPath \ "taskOwner").write[String] and
       (JsPath \ "deadline").writeNullable[Date](dateWrite)
    )(unlift(Task.unapply))
@@ -111,5 +109,16 @@ object Application extends Controller {
                 }
                 else BadRequest("Error: No existe el propietario de la tarea: " + user)
      )
+   }
+   
+   def addTasktoCategory(login: String, id: Long, categoriaId: String)=Action{
+     
+    val id_task: Long= Task.toCategory(id, categoriaId)
+    val task= Task.findById(id_task)
+     Ok(Json.toJson(task))
+   }
+   
+   def listPerCategory(login: String, categoria: String)=Action{
+     Ok(Json.toJson(Task.findByCategory(login, categoria)))
    }
 }
